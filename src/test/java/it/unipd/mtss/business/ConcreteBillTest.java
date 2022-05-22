@@ -33,7 +33,7 @@ public class ConcreteBillTest {
         try {
             // Act
             double price = bill.getOrderPrice(list, user);
-
+            
             // Assert
             assertEquals(0, price, 0);
             
@@ -46,7 +46,7 @@ public class ConcreteBillTest {
     public void testGetOrderPrice_NullList() throws BillException {
         // Act
         bill.getOrderPrice(null, user);
-
+        
         // Assert
         fail();
     }
@@ -55,7 +55,7 @@ public class ConcreteBillTest {
     public void testGetOrderPrice_NullUser() throws BillException {
         // Act
         bill.getOrderPrice(list, null);
-
+        
         // Assert
         fail();
     }
@@ -69,7 +69,7 @@ public class ConcreteBillTest {
         try {
             // Act
             double price = bill.getOrderPrice(list, user);
-
+            
             // Assert
             assertEquals(175.99, price, 0);
             
@@ -148,7 +148,7 @@ public class ConcreteBillTest {
         try {
             // Act
             double price = bill.getOrderPrice(list, user);
-
+            
             // Assert
             assertEquals(103.00, price, 0);
             
@@ -184,7 +184,7 @@ public class ConcreteBillTest {
             fail();
         }
     }
-
+    
     @Test
     public void testGetOrderPrice_GiftCheapestKeyboardOrMouseIfSameNumber(){
         // Arrange
@@ -198,7 +198,7 @@ public class ConcreteBillTest {
         try {
             // Act
             double price = bill.getOrderPrice(list, user);
-
+            
             // Assert
             assertEquals(54, price, 0);
             
@@ -221,7 +221,7 @@ public class ConcreteBillTest {
         try {
             // Act
             double price = bill.getOrderPrice(list, user);
-
+            
             // Assert
             assertEquals(70, price, 0);
             
@@ -229,10 +229,10 @@ public class ConcreteBillTest {
             fail();
         }   
     }
-
+    
     @Test
     public void testGetOrderPrice_GiftCheapestKeyboardIfAlreadyGiftedCheapestMouseOf10AndSameNumberOfBoth() {
-        // ArrangeIt
+        // Arrange
         list.add(new EItem(ItemType.Motherboard, "X550 Pro M", 25.00));
         list.add(new EItem(ItemType.Processor, "Elder SKU", 5.00));
         list.add(new EItem(ItemType.Mouse, "mouse1", 10.00));
@@ -257,12 +257,12 @@ public class ConcreteBillTest {
         list.add(new EItem(ItemType.Keyboard, "keyboard9", 10.00));
         list.add(new EItem(ItemType.Keyboard, "keyboard10", 10.00));
         list.add(new EItem(ItemType.Keyboard, "keyboard11", 6.00));
-
+        
         try {
             // Act
             double price = bill.getOrderPrice(list, user);
-
-
+            
+            
             // Assert
             assertEquals(230, price, 0);
             
@@ -270,4 +270,42 @@ public class ConcreteBillTest {
             fail();
         } 
     }
+    
+    @Test
+    public void testGetOrderPrice_Discount10percentIfTotalOver1000() {
+        // Arrange
+        list.add(new EItem(ItemType.Processor, "R9 5950X", 500.00));
+        list.add(new EItem(ItemType.Processor, "i9 12900K", 500.00));
+        
+        try {
+            // Act
+            double price = bill.getOrderPrice(list, user);
+            
+            // Assert
+            assertEquals(1000.00, price, 0);
+            
+        } catch(BillException ex) {
+            fail();
+        }     
+    }
+    
+    @Test
+    public void testGetOrderPrice_NoDiscount10percentIfTotalNotOver1000() {
+        // Arrange
+        list.add(new EItem(ItemType.Processor, "R9 5950X", 500.00));
+        list.add(new EItem(ItemType.Processor, "i9 12900K", 500.00));
+        list.add(new EItem(ItemType.Mouse, "Rotellina", 0.01));
+        
+        try {  
+            // Act
+            double price = bill.getOrderPrice(list, user);      
+            
+            // Assert   
+            assertEquals(900.009, price, 0);
+            
+        } catch(BillException ex) {
+            fail();
+        }     
+    }
+    
 }

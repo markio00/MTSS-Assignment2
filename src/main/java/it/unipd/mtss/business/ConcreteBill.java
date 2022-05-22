@@ -23,11 +23,14 @@ public class ConcreteBill implements Bill {
         if (itemsOrdered == null) {
             throw new BillException("Lista nulla");
         }
-        
-        return getTotalPrice(itemsOrdered) -
+
+        double totalPrice = getTotalPrice(itemsOrdered);
+
+        return totalPrice -
         getDiscount5Processors(itemsOrdered) -
         getDiscount10Mouse(itemsOrdered)-
-        getDiscountKeyboardAndMouseQuantity(itemsOrdered);
+        getDiscountKeyboardAndMouseQuantity(itemsOrdered) -
+        get10PercentDiscountIfTotalOver1000(totalPrice);
     }
     
     private double getTotalPrice(final List<EItem> itemsOrdered) {
@@ -107,6 +110,15 @@ public class ConcreteBill implements Bill {
             } else {
                 return minPriceKeyboard;
             }
+        }
+        
+        return 0;
+    }
+
+    private double get10PercentDiscountIfTotalOver1000
+    (final double totalPrice)  {
+        if(totalPrice > 1000) {
+            return totalPrice/10;
         }
         
         return 0;
