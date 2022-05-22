@@ -27,14 +27,15 @@ public class ConcreteBill implements Bill {
             throw new BillException(
             "Limite ordine ecceduto, massimo 30 articoli per ordine.");
         }
-
+        
         double totalPrice = getTotalPrice(itemsOrdered);
-
+        
         return totalPrice -
         getDiscount5Processors(itemsOrdered) -
         getDiscount10Mouse(itemsOrdered)-
         getDiscountKeyboardAndMouseQuantity(itemsOrdered) -
-        get10PercentDiscountIfTotalOver1000(totalPrice);
+        get10PercentDiscountIfTotalOver1000(totalPrice) +
+        get2EuroCommission(totalPrice);
     }
     
     private double getTotalPrice(final List<EItem> itemsOrdered) {
@@ -83,7 +84,7 @@ public class ConcreteBill implements Bill {
         
         return 0;
     }
-
+    
     private double getDiscountKeyboardAndMouseQuantity
     (final List<EItem> itemsOrdered) {
         boolean trovato = false;
@@ -93,7 +94,7 @@ public class ConcreteBill implements Bill {
         
         //Se già regaliamo un mouse con il metodo getDiscount10Mouses
         //Allora regaliamo la tastiera più economica
-
+        
         
         for(final EItem item : itemsOrdered){
             if(item.getItemType() == ItemType.Mouse){
@@ -107,7 +108,7 @@ public class ConcreteBill implements Bill {
                 trovato = true;
             }
         }
-
+        
         if(matchFound == 0 && trovato) {
             if(getDiscount10Mouse(itemsOrdered) == 0) {
                 return Math.min(minPriceKeyboard, minPriceMouse);
@@ -118,7 +119,7 @@ public class ConcreteBill implements Bill {
         
         return 0;
     }
-
+    
     private double get10PercentDiscountIfTotalOver1000
     (final double totalPrice)  {
         if(totalPrice > 1000) {
@@ -127,5 +128,13 @@ public class ConcreteBill implements Bill {
         
         return 0;
     }
-
+    
+    private double get2EuroCommission(final double totalPrice) {
+        if(totalPrice < 10  && totalPrice > 0) {
+            return 2.0;
+        }
+        
+        return 0;
+    }
+    
 }

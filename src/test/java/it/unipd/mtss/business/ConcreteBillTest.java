@@ -396,4 +396,35 @@ public class ConcreteBillTest {
         fail();
     }
 
+    @Test
+    public void testGetOrderPrice_2EuroCommissionIfLessThan10EuroTotal() {
+
+        this.list.add(new EItem(ItemType.Processor, "8086", 9.99));
+        
+        try {
+            
+            double price = bill.getOrderPrice(list, user);         
+            assertEquals(11.99, price, 0);
+            
+        } catch(BillException ex) {
+            fail();
+        }     
+    }
+
+    @Test
+    public void testGetOrderPrice_No2EuroCommissionIfNotLess10EuroTotal() {
+
+        this.list.add(new EItem(ItemType.Processor, "8086", 9.99));
+        this.list.add(new EItem(ItemType.Processor, "Fetta di processore", 0.01));
+            
+        try {
+
+            double price = bill.getOrderPrice(list, user); 
+            assertEquals(10.00, price, 0);
+            
+        } catch(BillException ex) {
+            fail();
+        }     
+    }
+
 }
