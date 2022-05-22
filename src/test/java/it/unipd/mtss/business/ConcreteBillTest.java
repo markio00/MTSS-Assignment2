@@ -61,9 +61,60 @@ public class ConcreteBillTest {
             assertEquals(175.99, price, 0);
             
         } catch (BillException ex) {
-            ex.printStackTrace();
             fail();
         }
     }
+
+    @Test
+    public void testGetOrderPrice_50percentDiscountOnCheapestProcessorIfMoreThan5() {
+        // Arrange
+        list.add(new EItem(ItemType.Keyboard, "K70 MX Brown", 5.00));
+        list.add(new EItem(ItemType.Mouse, "Athlon", 7.00));
+        list.add(new EItem(ItemType.Motherboard, "X550 Pro M", 25.00));
+        list.add(new EItem(ItemType.Processor, "cpu1", 15.00));
+        list.add(new EItem(ItemType.Processor, "cpu2", 14.00));
+        list.add(new EItem(ItemType.Processor, "cpu3", 13.00));
+        list.add(new EItem(ItemType.Processor, "cpu4", 12.00));
+        list.add(new EItem(ItemType.Processor, "cpu5", 11.00));
+        list.add(new EItem(ItemType.Processor, "cpu6", 10.00));
+
+        try {
+            // Act
+            double price = bill.getOrderPrice(list, user);
+
+            // Assert
+            assertEquals(107.00, price, 0);
+            
+        } catch (BillException ex) {
+            fail();
+        }
+
+    }
+
+    @Test
+    public void testGetOrderPrice_No50percentDiscountOnCheapestProcessorIfLessThan6() {
+        // Arrange
+        list.add(new EItem(ItemType.Keyboard, "K70 MX Brown", 5.00));
+        list.add(new EItem(ItemType.Mouse, "Athlon", 7.00));
+        list.add(new EItem(ItemType.Motherboard, "X550 Pro M", 25.00));
+        list.add(new EItem(ItemType.Processor, "cpu1", 15.00));
+        list.add(new EItem(ItemType.Processor, "cpu2", 14.00));
+        list.add(new EItem(ItemType.Processor, "cpu3", 13.00));
+        list.add(new EItem(ItemType.Processor, "cpu4", 12.00));
+        list.add(new EItem(ItemType.Processor, "cpu5", 11.00));
+
+        try {
+            // Act
+            double price = bill.getOrderPrice(list, user);
+
+            // Assert
+            assertEquals(102.00, price, 0);
+            
+        } catch (BillException ex) {
+            fail();
+        }
+    }
+
+
     
 }
