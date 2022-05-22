@@ -3,16 +3,12 @@
 // Michele Bettin 1216735
 ////////////////////////////////////////////////////////////////////
 
-package it.unipd.mtss;
+package it.unipd.mtss.business.exception;
 
-/**
- * Hello world!
- *
- */
-public class App 
-{
-    public static void main( String[] args )
-    {
-        System.out.println( "Hello World!" );
+public class BillException extends Exception{
+    
+    public BillException(String error) {
+        super(error);
     }
+
 }
