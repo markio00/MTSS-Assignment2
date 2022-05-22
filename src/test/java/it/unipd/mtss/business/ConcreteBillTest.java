@@ -307,5 +307,93 @@ public class ConcreteBillTest {
             fail();
         }     
     }
-    
+
+    @Test
+    public void testGetOrderPrice_NoErrorIfLessThan31Items() {
+        // Arrange
+        list.add(new EItem(ItemType.Motherboard, "article1", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article2", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article3", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article4", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article5", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article6", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article7", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article8", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article9", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article10", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article11", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article12", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article13", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article14", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article15", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article16", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article17", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article18", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article19", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article20", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article21", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article22", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article23", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article24", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article25", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article26", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article27", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article28", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article29", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article30", 1.00));
+
+        try {  
+            // Act
+            double price = bill.getOrderPrice(list, user);      
+            
+            // Assert   
+            assertEquals(30.00, price, 0);
+            
+        } catch(BillException ex) {
+            fail();
+        }   
+    }
+
+    @Test(expected = BillException.class)
+    public void testGetOrderPrice_ErrorIfMoreThan30Items() throws BillException{
+        // Arrange
+        list.add(new EItem(ItemType.Motherboard, "article1", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article2", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article3", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article4", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article5", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article6", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article7", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article8", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article9", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article10", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article11", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article12", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article13", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article14", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article15", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article16", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article17", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article18", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article19", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article20", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article21", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article22", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article23", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article24", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article25", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article26", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article27", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article28", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article29", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article30", 1.00));
+        list.add(new EItem(ItemType.Motherboard, "article31", 1.00));
+
+        // Act        
+        bill.getOrderPrice(list, user);
+        
+        // Assert
+        fail();
+    }
+
 }

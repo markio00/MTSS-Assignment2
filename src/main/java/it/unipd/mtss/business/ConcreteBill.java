@@ -23,6 +23,10 @@ public class ConcreteBill implements Bill {
         if (itemsOrdered == null) {
             throw new BillException("Lista nulla");
         }
+        if (itemsOrdered.size() > 30){
+            throw new BillException(
+            "Limite ordine ecceduto, massimo 30 articoli per ordine.");
+        }
 
         double totalPrice = getTotalPrice(itemsOrdered);
 
