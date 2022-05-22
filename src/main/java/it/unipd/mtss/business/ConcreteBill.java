@@ -5,11 +5,15 @@
 
 package it.unipd.mtss.business;
 
+import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Vector;
 
 import it.unipd.mtss.business.exception.BillException;
 import it.unipd.mtss.model.EItem;
 import it.unipd.mtss.model.ItemType;
+import it.unipd.mtss.model.Order;
 import it.unipd.mtss.model.User;
 
 public class ConcreteBill implements Bill {
@@ -36,6 +40,37 @@ public class ConcreteBill implements Bill {
         getDiscountKeyboardAndMouseQuantity(itemsOrdered) -
         get10PercentDiscountIfTotalOver1000(totalPrice) +
         get2EuroCommission(totalPrice);
+    }
+
+    public List<Order> ordersGiftLottery(List<Order> orders) {
+
+        Vector<User> luckyUsers = new Vector<User>();
+        int maxGifts = 10;
+
+        Vector<Order> giftedOrders = new Vector<Order>();
+
+        Collections.shuffle(orders);
+
+        for(Order order : orders) {
+
+            if(order.getUser().isUnderage() &&
+                order.getOrderTIme().isAfter(
+                    LocalTime.of(18,00,00,00).minusSeconds(1)) &&
+                order.getOrderTIme().isBefore(
+                    LocalTime.of(19,00,00,00).plusSeconds(1))) {
+
+                if(!luckyUsers.contains(order.getUser()) && maxGifts-- > 0) {
+
+                    luckyUsers.add(order.getUser());
+    
+                    order.gift();
+                    giftedOrders.add(order);
+                }
+            }
+        }
+        
+        return giftedOrders;
+
     }
     
     private double getTotalPrice(final List<EItem> itemsOrdered) {

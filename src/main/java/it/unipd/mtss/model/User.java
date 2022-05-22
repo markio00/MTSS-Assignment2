@@ -37,4 +37,8 @@ public class User {
         return birthDate;
     }
 
+    public boolean isUnderage() {
+        return birthDate.compareTo(LocalDate.now().minusYears(18)) > 0;
+    }
+
 }

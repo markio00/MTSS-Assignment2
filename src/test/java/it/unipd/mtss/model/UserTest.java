@@ -1,6 +1,8 @@
 package it.unipd.mtss.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.time.LocalDate;
 
@@ -51,6 +53,30 @@ public class UserTest {
 
         // Assert
         assertEquals("Rossi", surname);
+    }
+
+    @Test
+    public void testIsUnderage_isUnderage() {
+        // Arrange
+        User testUser = new User("test", "Test", "User", LocalDate.now().minusYears(18).plusDays(1));
+
+        // Act
+        boolean underageTest = testUser.isUnderage();
+
+        // Assert
+        assertTrue(underageTest);
+    }
+
+    @Test
+    public void testIsUnderage_isOverage() {
+        // Arrange
+        User testUser = new User("test", "Test", "User", LocalDate.now().minusYears(18).minusDays(1));
+
+        // Act
+        boolean underageTest = testUser.isUnderage();
+
+        // Assert
+        assertFalse(underageTest);
     }
 
 

@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.Vector;
 
 import org.junit.Before;
@@ -12,6 +14,7 @@ import org.junit.Test;
 import it.unipd.mtss.business.exception.BillException;
 import it.unipd.mtss.model.EItem;
 import it.unipd.mtss.model.ItemType;
+import it.unipd.mtss.model.Order;
 import it.unipd.mtss.model.User;
 
 public class ConcreteBillTest {
@@ -425,6 +428,372 @@ public class ConcreteBillTest {
         } catch(BillException ex) {
             fail();
         }     
+    }
+
+    @Test(expected= NullPointerException.class)
+    public void testOrdersGiftLottery_nullOrders() {
+
+        this.bill.ordersGiftLottery(null).size();
+
+        fail();
+    }
+
+
+    @Test
+    public void testOrdersGiftLottery_noOrders() {
+
+        int nGifts = this.bill.ordersGiftLottery(new Vector<Order>()).size();
+
+        assertEquals(0, nGifts);
+    }
+
+
+    @Test(expected= NullPointerException.class)
+    public void testOrdersGiftLottery_someNullOrders() {
+
+        User underageUser = new User("under", "Under", "Age", LocalDate.of(2020, 01, 01));
+
+        LocalTime inTime = LocalTime.of(18, 30);
+        LocalTime notInTime = LocalTime.of(10, 00);
+
+        EItem product = new EItem(ItemType.Processor, "Elder SKU", 10.55);
+
+        Vector<Order> orders = new Vector<Order>();
+        orders.add(new Order(underageUser, inTime, new Vector<EItem>(Arrays.asList(product))));
+        orders.add(null);
+        orders.add(null);
+        orders.add(new Order(underageUser, notInTime, new Vector<EItem>(Arrays.asList(product))));
+
+        this.bill.ordersGiftLottery(orders).size();
+
+        fail();
+    }
+
+    @Test
+    public void testOrdersGiftLottery_underageNotInTimeOrder() {
+
+        User underageUser1 = new User("under1", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser2 = new User("under2", "Under", "Age", LocalDate.of(2020, 01, 01));
+
+        EItem product = new EItem(ItemType.Processor, "Elder SKU", 10.55);
+
+        LocalTime earlyTime = LocalTime.of(17, 59, 59);
+        LocalTime lateTime = LocalTime.of(19, 00, 1);
+
+        Vector<Order> orders = new Vector<Order>();
+        orders.add(new Order(underageUser1, earlyTime, new Vector<EItem>(Arrays.asList(product))));   // FAIL: too early
+        orders.add(new Order(underageUser2, lateTime, new Vector<EItem>(Arrays.asList(product))));    // FAIL: too late
+
+        int nGifts = this.bill.ordersGiftLottery(orders).size();
+
+        assertEquals(0, nGifts);
+    }
+
+    @Test
+    public void testOrdersGiftLottery_underageInTimeOrder() {
+        User underageUser1 = new User("under1", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser2 = new User("under2", "Under", "Age", LocalDate.of(2020, 01, 01));
+
+        EItem product = new EItem(ItemType.Processor, "Elder SKU", 10.55);
+
+        LocalTime lowerBoudTime = LocalTime.of(18, 00);
+        LocalTime upperBoundTime = LocalTime.of(19, 00);
+
+        Vector<Order> orders = new Vector<Order>();
+        orders.add(new Order(underageUser1, lowerBoudTime, new Vector<EItem>(Arrays.asList(product))));
+        orders.add(new Order(underageUser2, upperBoundTime, new Vector<EItem>(Arrays.asList(product))));
+
+        int nGifts = this.bill.ordersGiftLottery(orders).size();
+
+        assertEquals(2, nGifts);
+    }
+
+
+    @Test
+    public void testOrdersGiftLottery_noGiftableOrders() {
+
+        User underageUser = new User("under", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User overageUser = new User("over", "Over", "Age", LocalDate.of(2000, 01, 01));
+
+        LocalTime inTime = LocalTime.of(18, 30);
+        LocalTime notInTime = LocalTime.of(10, 00);
+
+        EItem product = new EItem(ItemType.Processor, "Elder SKU", 10.55);
+
+        Vector<Order> orders = new Vector<Order>();
+        orders.add(new Order(underageUser, notInTime, new Vector<EItem>(Arrays.asList(product))));  // FAIL: underage user and order not in time
+        orders.add(new Order(overageUser, inTime, new Vector<EItem>(Arrays.asList(product))));      // FAIL: overage user and order in time
+        orders.add(new Order(overageUser, notInTime, new Vector<EItem>(Arrays.asList(product))));   // FAIL: overage user and order not in time
+
+        int nGifts = this.bill.ordersGiftLottery(orders).size();
+
+        assertEquals(0, nGifts);
+    }
+
+    @Test
+    public void testOrdersGiftLottery_noSameUseGift() {
+
+        User underageUser = new User("under", "Under", "Age", LocalDate.of(2020, 01, 01));
+
+        LocalTime inTime = LocalTime.of(18, 30);
+
+        EItem product = new EItem(ItemType.Processor, "Elder SKU", 10.55);
+
+        Vector<Order> orders = new Vector<Order>();
+        orders.add(new Order(underageUser, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser, inTime, new Vector<EItem>(Arrays.asList(product))));     // FAIL: underage user and order in time but unly one gift allowed per user
+
+        int nGifts = this.bill.ordersGiftLottery(orders).size();
+
+        assertEquals(1, nGifts);
+    }
+
+
+    @Test
+    public void testOrdersGiftLottery_olyGiftableOrders() {
+
+        User underageUser1 = new User("under1", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser2 = new User("under2", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser3 = new User("under3", "Under", "Age", LocalDate.of(2020, 01, 01));
+
+        LocalTime inTime = LocalTime.of(18, 30);
+
+        EItem product = new EItem(ItemType.Processor, "Elder SKU", 10.55);
+
+        Vector<Order> orders = new Vector<Order>();
+        orders.add(new Order(underageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser2, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser3, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+
+        int nGifts = this.bill.ordersGiftLottery(orders).size();
+
+        assertEquals(3, nGifts);
+    }
+
+    @Test
+    public void testOrdersGiftLottery_lessThan10GiftableOrdersWithDifferentUsers() {
+
+        User overageUser1 = new User("over1", "Over", "Age", LocalDate.of(2000, 01, 01));
+        User overageUser2 = new User("over2", "Over", "Age", LocalDate.of(2000, 01, 01));
+        User underageUser1 = new User("under1", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser2 = new User("under2", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser3 = new User("under3", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser4 = new User("under4", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser5 = new User("under5", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser6 = new User("under6", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser7 = new User("under7", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser8 = new User("under8", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser9 = new User("under9", "Under", "Age", LocalDate.of(2020, 01, 01));
+
+        LocalTime inTime = LocalTime.of(18, 30);
+        LocalTime notInTime = LocalTime.of(18, 30);
+
+        EItem product = new EItem(ItemType.Processor, "Elder SKU", 10.55);
+
+        Vector<Order> orders = new Vector<Order>();
+        orders.add(new Order(overageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));      // FAIL: overage user and order in time
+        orders.add(new Order(overageUser2, notInTime, new Vector<EItem>(Arrays.asList(product))));   // FAIL: overage user and order not in time
+        orders.add(new Order(underageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser2, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser3, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser4, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser5, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser6, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser7, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser8, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser9, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+
+        int nGifts = this.bill.ordersGiftLottery(orders).size();
+
+        assertEquals(9, nGifts);
+        
+    }
+
+    @Test
+    public void testOrdersGiftLottery_10GiftableOrdersWithDifferentUsers() {
+
+        User overageUser1 = new User("over1", "Over", "Age", LocalDate.of(2000, 01, 01));
+        User overageUser2 = new User("over2", "Over", "Age", LocalDate.of(2000, 01, 01));
+        User underageUser1 = new User("under1", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser2 = new User("under2", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser3 = new User("under3", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser4 = new User("under4", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser5 = new User("under5", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser6 = new User("under6", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser7 = new User("under7", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser8 = new User("under8", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser9 = new User("under9", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser10 = new User("under10", "Under", "Age", LocalDate.of(2020, 01, 01));
+
+        LocalTime inTime = LocalTime.of(18, 30);
+        LocalTime notInTime = LocalTime.of(18, 30);
+
+        EItem product = new EItem(ItemType.Processor, "Elder SKU", 10.55);
+
+        Vector<Order> orders = new Vector<Order>();
+        orders.add(new Order(overageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));      // FAIL: overage user and order in time
+        orders.add(new Order(overageUser2, notInTime, new Vector<EItem>(Arrays.asList(product))));   // FAIL: overage user and order not in time
+        orders.add(new Order(underageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser2, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser3, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser4, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser5, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser6, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser7, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser8, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser9, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser10, inTime, new Vector<EItem>(Arrays.asList(product))));    // OK:   underage user and order in time
+
+        int nGifts = this.bill.ordersGiftLottery(orders).size();
+
+        assertEquals(10, nGifts);
+    }
+
+    @Test
+    public void testOrdersGiftLottery_moreThan10GiftableOrdersWithDifferentUsers() {
+
+        User overageUser1 = new User("over1", "Over", "Age", LocalDate.of(2000, 01, 01));
+        User overageUser2 = new User("over2", "Over", "Age", LocalDate.of(2000, 01, 01));
+        User underageUser1 = new User("under1", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser2 = new User("under2", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser3 = new User("under3", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser4 = new User("under4", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser5 = new User("under5", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser6 = new User("under6", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser7 = new User("under7", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser8 = new User("under8", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser9 = new User("under9", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser10 = new User("under10", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser11 = new User("under11", "Under", "Age", LocalDate.of(2020, 01, 01));
+
+        LocalTime inTime = LocalTime.of(18, 30);
+        LocalTime notInTime = LocalTime.of(18, 30);
+
+        EItem product = new EItem(ItemType.Processor, "Elder SKU", 10.55);
+
+        Vector<Order> orders = new Vector<Order>();
+        orders.add(new Order(overageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));      // FAIL: overage user and order in time
+        orders.add(new Order(overageUser2, notInTime, new Vector<EItem>(Arrays.asList(product))));   // FAIL: overage user and order not in time
+        orders.add(new Order(underageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser2, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser3, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser4, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser5, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser6, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser7, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser8, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser9, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser10, inTime, new Vector<EItem>(Arrays.asList(product))));    // OK:   underage user and order in time
+        orders.add(new Order(underageUser11, inTime, new Vector<EItem>(Arrays.asList(product))));    // OK:   underage user and order in time
+
+        int nGifts = this.bill.ordersGiftLottery(orders).size();
+
+        assertEquals(10, nGifts);
+    }
+
+
+/*
+
+    meno di 10 ordini regalabili con utenti diversi
+    10 ordini regalabili con utenti diversi
+    più di 10 ordini regalabili con utenti diversi
+
+    meno di 10 ordini regalabili con utenti uguali
+    10 ordini regalabili con utenti uguali
+    più di 10 ordini regalabili con utenti uguali
+    10 regali effettuati con utenti uguali
+
+    nessun ordine regalabile
+    nessun ordine
+    solo ordini regalabili
+    lista nulla
+    qualche ordine nullo
+
+giusto tempo
+
+
+
+*/
+
+    @Test
+    public void testOrdersGiftLottery_10GiftableOrdersWithEqualUsers() {
+
+        User overageUser1 = new User("over1", "Over", "Age", LocalDate.of(2000, 01, 01));
+        User overageUser2 = new User("over2", "Over", "Age", LocalDate.of(2000, 01, 01));
+        User underageUser1 = new User("under1", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser2 = new User("under2", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser3 = new User("under3", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser4 = new User("under4", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser5 = new User("under5", "Under", "Age", LocalDate.of(2020, 01, 01));
+
+        LocalTime inTime = LocalTime.of(18, 30);
+        LocalTime notInTime = LocalTime.of(18, 30);
+
+        EItem product = new EItem(ItemType.Processor, "Elder SKU", 10.55);
+
+        Vector<Order> orders = new Vector<Order>();
+        orders.add(new Order(overageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));      // FAIL: overage user and order in time
+        orders.add(new Order(overageUser2, notInTime, new Vector<EItem>(Arrays.asList(product))));   // FAIL: overage user and order not in time
+        orders.add(new Order(underageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser2, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser3, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser4, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser5, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser2, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser3, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser4, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser5, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+
+        int nGifts = this.bill.ordersGiftLottery(orders).size();
+
+        assertEquals(5, nGifts);
+    }
+
+    @Test
+    public void testOrdersGiftLottery_10GiftedOrdersWithEqualUsers() {
+
+        User overageUser1 = new User("over1", "Over", "Age", LocalDate.of(2000, 01, 01));
+        User overageUser2 = new User("over2", "Over", "Age", LocalDate.of(2000, 01, 01));
+        User underageUser1 = new User("under1", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser2 = new User("under2", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser3 = new User("under3", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser4 = new User("under4", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser5 = new User("under5", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser6 = new User("under6", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser7 = new User("under7", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser8 = new User("under8", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser9 = new User("under9", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser10 = new User("under10", "Under", "Age", LocalDate.of(2020, 01, 01));
+        User underageUser11 = new User("under11", "Under", "Age", LocalDate.of(2020, 01, 01));
+
+        LocalTime inTime = LocalTime.of(18, 30);
+        LocalTime notInTime = LocalTime.of(18, 30);
+
+        EItem product = new EItem(ItemType.Processor, "Elder SKU", 10.55);
+
+        Vector<Order> orders = new Vector<Order>();
+        orders.add(new Order(overageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));      // FAIL: overage user and order in time
+        orders.add(new Order(overageUser2, notInTime, new Vector<EItem>(Arrays.asList(product))));   // FAIL: overage user and order not in time
+        orders.add(new Order(underageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser2, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser3, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser4, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser5, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser6, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser7, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser8, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser9, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser10, inTime, new Vector<EItem>(Arrays.asList(product))));    // OK:   underage user and order in time
+        orders.add(new Order(underageUser11, inTime, new Vector<EItem>(Arrays.asList(product))));    // OK:   underage user and order in time
+        orders.add(new Order(underageUser1, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser2, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser3, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+        orders.add(new Order(underageUser4, inTime, new Vector<EItem>(Arrays.asList(product))));     // OK:   underage user and order in time
+
+        int nGifts = this.bill.ordersGiftLottery(orders).size();
+
+        assertEquals(10, nGifts);
     }
 
 }
