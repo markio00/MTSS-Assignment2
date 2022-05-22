@@ -26,7 +26,8 @@ public class ConcreteBill implements Bill {
         
         return getTotalPrice(itemsOrdered) -
         getDiscount5Processors(itemsOrdered) -
-        getDiscount10Mouse(itemsOrdered);
+        getDiscount10Mouse(itemsOrdered)-
+        getDiscountKeyboardAndMouseQuantity(itemsOrdered);
     }
     
     private double getTotalPrice(final List<EItem> itemsOrdered) {
@@ -75,4 +76,40 @@ public class ConcreteBill implements Bill {
         
         return 0;
     }
+
+    private double getDiscountKeyboardAndMouseQuantity
+    (final List<EItem> itemsOrdered) {
+        boolean trovato = false;
+        int matchFound = 0;
+        double minPriceMouse = Double.MAX_VALUE;
+        double minPriceKeyboard = Double.MAX_VALUE;
+        
+        //Se già regaliamo un mouse con il metodo getDiscount10Mouses
+        //Allora regaliamo la tastiera più economica
+
+        
+        for(final EItem item : itemsOrdered){
+            if(item.getItemType() == ItemType.Mouse){
+                minPriceMouse = Math.min(minPriceMouse, item.getPrice());
+                ++matchFound;
+                trovato = true;
+            }
+            if(item.getItemType() == ItemType.Keyboard){
+                minPriceKeyboard = Math.min(minPriceKeyboard, item.getPrice());
+                --matchFound;
+                trovato = true;
+            }
+        }
+
+        if(matchFound == 0 && trovato) {
+            if(getDiscount10Mouse(itemsOrdered) == 0) {
+                return Math.min(minPriceKeyboard, minPriceMouse);
+            } else {
+                return minPriceKeyboard;
+            }
+        }
+        
+        return 0;
+    }
+
 }
