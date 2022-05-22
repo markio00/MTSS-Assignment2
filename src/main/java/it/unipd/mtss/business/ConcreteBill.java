@@ -25,38 +25,54 @@ public class ConcreteBill implements Bill {
         }
         
         return getTotalPrice(itemsOrdered) -
-            getDiscount5Processors(itemsOrdered);
+        getDiscount5Processors(itemsOrdered) -
+        getDiscount10Mouse(itemsOrdered);
     }
-    
     
     private double getTotalPrice(final List<EItem> itemsOrdered) {
         
         double tot = 0;
         
-        for(final EItem item : itemsOrdered) {
+        for (final EItem item : itemsOrdered) {
             tot += item.getPrice();
         }
         
         return tot;
     }
     
-    
     private double getDiscount5Processors(final List<EItem> itemsOrdered) {
         int processorsFound = 0;
         double minPrice = Double.MAX_VALUE;
         
-        for(final EItem item : itemsOrdered){
-            if(item.getItemType() == ItemType.Processor){
+        for (final EItem item : itemsOrdered) {
+            if (item.getItemType() == ItemType.Processor) {
                 minPrice = Math.min(minPrice, item.getPrice());
                 ++processorsFound;
             }
         }
         
-        if(processorsFound > 5){
-            return minPrice/2;
+        if (processorsFound > 5) {
+            return minPrice / 2;
         }
         
         return 0;
     }
-
+    
+    private double getDiscount10Mouse(final List<EItem> itemsOrdered) {
+        int mouseFound = 0;
+        double minPrice = Double.MAX_VALUE;
+        
+        for (final EItem item : itemsOrdered) {
+            if (item.getItemType() == ItemType.Mouse) {
+                minPrice = Math.min(minPrice, item.getPrice());
+                ++mouseFound;
+            }
+        }
+        
+        if (mouseFound > 10) {
+            return minPrice;
+        }
+        
+        return 0;
+    }
 }

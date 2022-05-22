@@ -64,7 +64,7 @@ public class ConcreteBillTest {
             fail();
         }
     }
-
+    
     @Test
     public void testGetOrderPrice_50percentDiscountOnCheapestProcessorIfMoreThan5() {
         // Arrange
@@ -77,20 +77,20 @@ public class ConcreteBillTest {
         list.add(new EItem(ItemType.Processor, "cpu4", 12.00));
         list.add(new EItem(ItemType.Processor, "cpu5", 11.00));
         list.add(new EItem(ItemType.Processor, "cpu6", 10.00));
-
+        
         try {
             // Act
             double price = bill.getOrderPrice(list, user);
-
+            
             // Assert
             assertEquals(107.00, price, 0);
             
         } catch (BillException ex) {
             fail();
         }
-
+        
     }
-
+    
     @Test
     public void testGetOrderPrice_No50percentDiscountOnCheapestProcessorIfLessThan6() {
         // Arrange
@@ -102,11 +102,11 @@ public class ConcreteBillTest {
         list.add(new EItem(ItemType.Processor, "cpu3", 13.00));
         list.add(new EItem(ItemType.Processor, "cpu4", 12.00));
         list.add(new EItem(ItemType.Processor, "cpu5", 11.00));
-
+        
         try {
             // Act
             double price = bill.getOrderPrice(list, user);
-
+            
             // Assert
             assertEquals(102.00, price, 0);
             
@@ -114,7 +114,55 @@ public class ConcreteBillTest {
             fail();
         }
     }
-
-
+    
+    @Test
+    public void testGetOrderPrice_NoGiftCheapestMouseIfLessThan11() {
+        
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 8.00));
+        list.add(new EItem(ItemType.Processor, "Elder SKU", 5.00));
+        
+        try {
+            double price = bill.getOrderPrice(list, user);
+            assertEquals(103.00, price, 0);
+            
+        } catch (BillException ex) {
+            fail();
+        }
+    }
+    
+    @Test
+    public void testGetOrderPrice_GiftCheapestMouseIfMoreThan10() {
+        
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 8.00));
+        list.add(new EItem(ItemType.Processor, "Elder SKU", 5.00));
+        list.add(new EItem(ItemType.Mouse, "G502", 10.00));
+        
+        try {
+            
+            double price = bill.getOrderPrice(list, user);
+            assertEquals(105.00, price, 0);
+            
+        } catch (BillException ex) {
+            fail();
+        }
+    }
     
 }
